@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Pair Number Connect</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 10px;
+    }
+    #exitBtn {
+      display: none;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 20;
+      padding: 10px;
+      font-size: 14px;
+    }
+    canvas {
+      width: 100vw;
+      height: 100vh;
+      touch-action: none;
+      display: block;
+    }
+    select, button, #timer {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <label for="numberCount">Choose number of pairs:</label><br>
+    <select id="numberCount">
+      <option value="2">2</option>
+      <option value="3" selected>3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select><br>
+    <button onclick="startFullscreen(); safeInitGame();">Start Game</button>
+    <button onclick="undoLast()">Undo</button>
+    <div id="timer">Time: 0s</div>
+  </div>
+  <button id="exitBtn" onclick="exitFullscreen()">Exit Fullscreen</button>
+  <canvas id="gameCanvas"></canvas>
+
+
+    <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const radius = 20;
+    const obstacleCount = 5;
+    const numberColors = ["red", "green", "orange", "blue", "purple", "brown"];
+
+    let circles = [], connections = [], drawing = false;
+    let selected = null, path = [], obstacles = [];
+    let timerInterval, timeElapsed = 0;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      drawAll();
+    }
+
+    function vibrate(ms) {
+      if (navigator.vibrate) navigator.vibrate(ms);
+    }
+
+    function startFullscreen() {
+      const docEl = document.documentElement;
+      const ui = document.getElementById("ui");
+      const exitBtn = document.getElementById("exitBtn");
+      if (docEl.requestFullscreen) docEl.requestFullscreen();
+      else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+      else if (docEl.msRequestFullscreen) docEl.msRequestFullscreen();
+
+      ui.style.display = "none";
+      exitBtn.style.display = "block";
+    }
+
+    function exitFullscreen() {
+      const exitBtn = document.getElementById("exitBtn");
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      else if (document.msExitFullscreen) document.msExitFullscreen();
+    }
+
+    document.addEventListener("fullscreenchange", () => {
+      const ui = document.getElementById("ui");
+      const exitBtn = document.getElementById("exitBtn");
+      if (!document.fullscreenElement) {
+        // exited fullscreen
+        ui.style.display = "block";
+        exitBtn.style.display = "none";
+      }
+    });
+
+        function checkWin() {
+      if (circles.every(c => c.connected)) {
+        stopTimer();
+        alert(`🎉 You connected all pairs in ${timeElapsed} seconds!`);
+      }
+    }
+
+    function startTimer() {
+      timeElapsed = 0;
+      clearInterval(timerInterval);
+      document.getElementById("timer").innerText = `Time: 0s`;
+      timerInterval = setInterval(() => {
+        timeElapsed++;
+        document.getElementById("timer").innerText = `Time: ${timeElapsed}s`;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    function getTouchPos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      const touch = evt.touches[0];
+      return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      };
+    }
+
+    function getMousePos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+      };
+    }
+
+    function safeInitGame() {
+      requestAnimationFrame(() => {
+        resizeCanvas();
+        setTimeout(initGame, 50);
+      });
+    }
+
+    function initGame() {
+      const count = parseInt(document.getElementById("numberCount").value);
+      const numbers = [];
+      for (let i = 1; i <= count; i++) numbers.push(i, i);
+
+      circles = [];
+      connections = [];
+      drawing = false;
+      selected = null;
+      path = [];
+      obstacles = [];
+      startTimer();
+
+      function isOverlapping(x, y, list) {
+        return list.some(c => Math.hypot(c.x - x, c.y - y) < radius * 2.5);
+      }
+
+      numbers.forEach(n => {
+        let x, y;
+        do {
+          x = Math.random() * (canvas.width - 2 * radius) + radius;
+          y = Math.random() * (canvas.height - 2 * radius) + radius;
+        } while (isOverlapping(x, y, circles));
+        circles.push({ number: n, x, y, connected: false });
+      });
+
+      for (let i = 0; i < obstacleCount; i++) {
+        let x, y;
+        do {
+          x = Math.random() * (canvas.width - 2 * radius) + radius;
+          y = Math.random() * (canvas.height - 2 * radius) + radius;
+        } while (isOverlapping(x, y, circles.concat(obstacles)));
+        obstacles.push({ x, y });
+      }
+
+      drawAll();
+    }
+
+    function drawAll() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw connections
+      for (let con of connections) {
+        ctx.beginPath();
+        ctx.strokeStyle = numberColors[(con.number - 1) % numberColors.length];
+        ctx.lineWidth = 4;
+        ctx.moveTo(con.path[0].x, con.path[0].y);
+        for (let pt of con.path.slice(1)) {
+          ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.stroke();
+      }
+
+      // Draw path in progress
+      if (drawing && path.length > 1) {
+        ctx.beginPath();
+        ctx.strokeStyle = numberColors[(selected.number - 1) % numberColors.length];
+        ctx.lineWidth = 2;
+        ctx.moveTo(path[0].x, path[0].y);
+        for (let pt of path.slice(1)) {
+          ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.stroke();
+      }
+
+      // Draw circles
+      for (let c of circles) {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = numberColors[(c.number - 1) % numberColors.length];
+        ctx.fill();
+        ctx.strokeStyle = "#000";
+        ctx.stroke();
+        ctx.fillStyle = "#fff";
+        ctx.font = "16px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(c.number, c.x, c.y);
+      }
+
+      // Draw obstacles
+      for (let obs of obstacles) {
+        ctx.beginPath();
+        ctx.arc(obs.x, obs.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = "#333";
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+
+    function onDown(pos) {
+      for (let c of circles) {
+        if (!c.connected && Math.hypot(pos.x - c.x, pos.y - c.y) < radius) {
+          drawing = true;
+          selected = c;
+          path = [pos];
+          vibrate(30);
+          drawAll();
+          return;
+        }
+      }
+    }
+
+    function onMove(pos) {
+      if (drawing) {
+        path.push(pos);
+        drawAll();
+      }
+    }
+
+function segmentsIntersect(a1, a2, b1, b2) {
+      function ccw(p1, p2, p3) {
+        return (p3.y - p1.y) * (p2.x - p1.x) > (p2.y - p1.y) * (p3.x - p1.x);
+      }
+      return ccw(a1, b1, b2) !== ccw(a2, b1, b2) && ccw(a1, a2, b1) !== ccw(a1, a2, b2);
+    }
+
+    function pathOverlaps(path1) {
+      for (let con of connections) {
+        const path2 = con.path;
+        for (let i = 0; i < path1.length - 1; i++) {
+          for (let j = 0; j < path2.length - 1; j++) {
+            if (segmentsIntersect(path1[i], path1[i + 1], path2[j], path2[j + 1])) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    function onUp(pos) {
+      if (!drawing) return;
+      for (let c of circles) {
+        if (!c.connected && c !== selected && c.number === selected.number && Math.hypot(pos.x - c.x, pos.y - c.y) < radius) {
+          if (pathOverlaps(path)) {
+            alert("❌ Lines cannot overlap!");
+            break;
+          }
+          selected.connected = true;
+          c.connected = true;
+          connections.push({ number: selected.number, path: [...path] });
+          vibrate(50);
+          checkWin();
+          break;
+        }
+      }
+      drawing = false;
+      selected = null;
+      path = [];
+      drawAll();
+    }
+    
+    canvas.addEventListener("mousedown", e => onDown(getMousePos(e)));
+    canvas.addEventListener("mousemove", e => onMove(getMousePos(e)));
+    canvas.addEventListener("mouseup", e => onUp(getMousePos(e)));
+
+    canvas.addEventListener("touchstart", e => { e.preventDefault(); onDown(getTouchPos(e)); });
+    canvas.addEventListener("touchmove", e => { e.preventDefault(); onMove(getTouchPos(e)); });
+    canvas.addEventListener("touchend", e => { e.preventDefault(); onUp(path[path.length - 1]); });
+
+    function undoLast() {
+      if (connections.length > 0) {
+        const last = connections.pop();
+        for (let c of circles) {
+          if (c.number === last.number) c.connected = false;
+        }
+        drawAll();
+      }
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+    safeInitGame();
+  </script>
+</body>
+</html>
