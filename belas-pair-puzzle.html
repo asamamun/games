@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Belas Pair Puzzle</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      margin-top: 30px;
+    }
+    canvas {
+      border: 2px solid #333;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    h1 {
+      font-size: 24px;
+    }
+    select, button {
+      margin-top: 10px;
+      padding: 5px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Belas Pair Puzzle</h1>
+  <label for="numberCount">Choose number of pairs:</label>
+  <select id="numberCount">
+    <option value="2">2</option>
+    <option value="3" selected>3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+  </select>
+  <button onclick="initGame()">Start Game</button>
+  <canvas id="gameCanvas" width="500" height="500"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const radius = 20;
+    const obstacleCount = 5;
+    const numberColors = ["red", "green", "orange", "blue", "purple", "brown"];
+
+    let circles = [], connections = [], drawing = false;
+    let selected = null, path = [], obstacles = [];
+
+    function initGame() {
+      const count = parseInt(document.getElementById("numberCount").value);
+      const numbers = [];
+      for (let i = 1; i <= count; i++) numbers.push(i, i);
+
+      circles = [];
+      connections = [];
+      drawing = false;
+      selected = null;
+      path = [];
+      obstacles = [];
+
+      function isOverlapping(x, y, list) {
+        return list.some(c => Math.hypot(c.x - x, c.y - y) < radius * 2.5);
+      }
+
+      numbers.forEach(n => {
+        let x, y;
+        do {
+          x = Math.random() * (canvas.width - 2 * radius) + radius;
+          y = Math.random() * (canvas.height - 2 * radius) + radius;
+        } while (isOverlapping(x, y, circles));
+        circles.push({ number: n, x, y, connected: false });
+      });
+
+      for (let i = 0; i < obstacleCount; i++) {
+        let x, y;
+        do {
+          x = Math.random() * (canvas.width - 2 * radius) + radius;
+          y = Math.random() * (canvas.height - 2 * radius) + radius;
+        } while (isOverlapping(x, y, circles.concat(obstacles)));
+        obstacles.push({ x, y });
+      }
+
+      drawAll();
+    }
+
+    function drawAll() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let line of connections) {
+        ctx.beginPath();
+        ctx.moveTo(line.path[0].x, line.path[0].y);
+        for (let i = 1; i < line.path.length; i++) {
+          ctx.lineTo(line.path[i].x, line.path[i].y);
+        }
+        ctx.strokeStyle = numberColors[line.color - 1] || "blue";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+      }
+
+      if (drawing && path.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        for (let i = 1; i < path.length; i++) {
+          ctx.lineTo(path[i].x, path[i].y);
+        }
+        ctx.strokeStyle = "gray";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      for (let obs of obstacles) {
+        ctx.beginPath();
+        ctx.arc(obs.x, obs.y, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = "#444";
+        ctx.fill();
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      for (let c of circles) {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = c.connected ? "#ccc" : numberColors[c.number - 1] || "white";
+        ctx.fill();
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = "black";
+        ctx.font = "16px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(c.number, c.x, c.y);
+      }
+    }
+
+    function getCircleAt(x, y) {
+      return circles.find(c => !c.connected && Math.hypot(c.x - x, c.y - y) <= radius);
+    }
+
+    function isPathIntersecting(newPath) {
+      function segmentsIntersect(p1, p2, q1, q2) {
+        const ccw = (A, B, C) => (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+        return ccw(p1, q1, q2) !== ccw(p2, q1, q2) && ccw(p1, p2, q1) !== ccw(p1, p2, q2);
+      }
+      for (const line of connections) {
+        for (let i = 0; i < line.path.length - 1; i++) {
+          const a1 = line.path[i], a2 = line.path[i + 1];
+          for (let j = 0; j < newPath.length - 1; j++) {
+            const b1 = newPath[j], b2 = newPath[j + 1];
+            if (segmentsIntersect(a1, a2, b1, b2)) return true;
+          }
+        }
+      }
+      for (let i = 0; i < newPath.length; i++) {
+        for (let obs of obstacles) {
+          if (Math.hypot(newPath[i].x - obs.x, newPath[i].y - obs.y) < radius) return true;
+        }
+      }
+      return false;
+    }
+
+    canvas.addEventListener("mousedown", e => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const circle = getCircleAt(x, y);
+      if (circle) {
+        drawing = true;
+        selected = circle;
+        path = [{ x: circle.x, y: circle.y }];
+      }
+    });
+
+    canvas.addEventListener("mousemove", e => {
+      if (drawing) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        path.push({ x, y });
+        drawAll();
+      }
+    });
+
+    canvas.addEventListener("mouseup", e => {
+      if (!drawing) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const target = getCircleAt(x, y);
+
+      if (
+        target &&
+        selected !== target &&
+        selected.number === target.number &&
+        !isPathIntersecting(path)
+      ) {
+        connections.push({ a: selected, b: target, path: [...path], color: selected.number });
+        selected.connected = true;
+        target.connected = true;
+      }
+
+      drawing = false;
+      selected = null;
+      path = [];
+      drawAll();
+    });
+
+    initGame();
+  </script>
+</body>
+</html>
