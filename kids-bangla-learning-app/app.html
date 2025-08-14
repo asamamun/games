@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>বাংলা শেখার অ্যাপ</title>
+    <meta name="description" content="বাংলা ভাষা শেখার জন্য একটি মজার এবং ইন্টারেক্টিভ অ্যাপ।">
+    <meta name="keywords" content="বাংলা, ভাষা, শিক্ষা, অ্যাপ, learning, bangla, app">
+    <meta name="author" content="AYRA's PAPA">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-website-url.com/">
+    <meta property="og:title" content="বাংলা শেখার অ্যাপ">
+    <meta property="og:description" content="বাংলা ভাষা শেখার জন্য একটি মজার এবং ইন্টারেক্টিভ অ্যাপ।">
+    <meta property="og:image" content="https://your-website-url.com/images/banner.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://your-website-url.com/">
+    <meta property="twitter:title" content="বাংলা শেখার অ্যাপ">
+    <meta property="twitter:description" content="বাংলা ভাষা শেখার জন্য একটি মজার এবং ইন্টারেক্টিভ অ্যাপ।">
+    <meta property="twitter:image" content="https://your-website-url.com/images/banner.jpg">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="quiz-container">
+        <div id="question-container" class="hide">
+            <div id="audio-container">
+                <button id="play-audio-btn" class="btn">শব্দ চালান</button>
+                <button id="debug-voices-btn" class="btn" style="margin-left: 10px; font-size: 12px;">Debug Voices</button>
+                <select id="voice-select" style="margin-left: 10px; padding: 5px; font-size: 12px;">
+                    <option value="">Auto Select Voice</option>
+                </select>
+            </div>
+            <div id="question">প্রশ্ন</div>
+            <div id="answer-buttons" class="btn-grid">
+                <button class="btn">উত্তর ১</button>
+                <button class="btn">উত্তর ২</button>
+                <button class="btn">উত্তর ৩</button>
+                <button class="btn">উত্তর ৪</button>
+            </div>
+        </div>
+        <div class="controls">
+            <button id="start-btn" class="start-btn btn">শুরু করুন</button>
+            <button id="next-btn" class="next-btn btn hide">পরবর্তী</button>
+        </div>
+    </div>
+    </div>
+    <div class="footer">
+        Developed for AYRA by her PAPA
+    </div>
+    <script src="script.js?v=4"></script>
+</body>
+</html>
