@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bubble Character Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>Bubble Pop Game</h1>
+            <div class="stats">
+                <div class="score">Score: <span id="score">0</span></div>
+                <div class="misses">Misses: <span id="misses">0</span></div>
+            </div>
+        </div>
+        <div class="game-over" id="gameOver" style="display: none;">
+            <div class="game-over-content">
+                <h2>Game Over!</h2>
+                <p>Final Score: <span id="finalScore">0</span></p>
+                <p>You missed 5 bubbles!</p>
+                <button onclick="location.reload()">Play Again</button>
+            </div>
+        </div>
+        <div class="game-area" id="gameArea">
+            <!-- Bubbles will appear here -->
+        </div>
+        <div class="instructions">
+            <p>Press the letter inside each bubble to pop it!</p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

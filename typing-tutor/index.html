@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Tutor - Word Bubble Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>Typing Tutor</h1>
+            <div class="stats">
+                <div class="score">Score: <span id="score">0</span></div>
+                <div class="wpm">WPM: <span id="wpm">0</span></div>
+                <div class="misses">Misses: <span id="misses">0</span></div>
+            </div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="wordInput" placeholder="Type the word here..." autocomplete="off" spellcheck="false">
+        </div>
+        <div class="game-area" id="gameArea">
+            <!-- Bubbles will appear here -->
+        </div>
+        <div class="game-over" id="gameOver" style="display: none;">
+            <div class="game-over-content">
+                <h2>Game Over!</h2>
+                <p>Final Score: <span id="finalScore">0</span></p>
+                <p>Final WPM: <span id="finalWPM">0</span></p>
+                <p>You missed 5 words!</p>
+                <button onclick="location.reload()">Play Again</button>
+            </div>
+        </div>
+        <div class="instructions">
+            <p>Type the words in the bubbles to pop them! Focus on accuracy and speed.</p>
+        </div>
+    </div>
+    <script src="words-2000.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

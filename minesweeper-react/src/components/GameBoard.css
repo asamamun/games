@@ -1,0 +1,8 @@
+.game-board {
+  display: grid;
+  gap: 1px;
+  background-color: #808080;
+  border: 3px inset #c0c0c0;
+  padding: 10px;
+  border-radius: 5px;
+}

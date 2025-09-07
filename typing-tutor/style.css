@@ -1,0 +1,249 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: url('background.jpg') center center/cover no-repeat;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.game-container {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+}
+
+.header h1 {
+    color: white;
+    font-size: 2.2em;
+    font-weight: 300;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.stats {
+    display: flex;
+    gap: 15px;
+}
+
+.score, .wpm, .misses {
+    font-size: 1.4em;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 8px 16px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.score {
+    color: #27ae60;
+}
+
+.wpm {
+    color: #3498db;
+}
+
+.misses {
+    color: #e74c3c;
+}
+
+.input-area {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+#wordInput {
+    width: 400px;
+    padding: 15px 20px;
+    font-size: 1.3em;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.9);
+    outline: none;
+    text-align: center;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+#wordInput:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 20px rgba(52, 152, 219, 0.3);
+    transform: scale(1.02);
+}
+
+.game-area {
+    width: 100%;
+    height: calc(100vh - 200px);
+    position: relative;
+    overflow: hidden;
+}
+
+.bubble {
+    position: absolute;
+    min-width: 120px;
+    height: 80px;
+    border-radius: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 3px solid rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4em;
+    font-weight: 600;
+    color: #2c3e50;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: float-up linear;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    padding: 0 20px;
+    text-align: center;
+}
+
+.bubble:hover {
+    transform: scale(1.05);
+}
+
+.bubble.pop {
+    animation: pop 0.4s ease-out forwards;
+}
+
+.bubble.correct {
+    background: rgba(46, 204, 113, 0.9);
+    color: white;
+}
+
+.bubble.incorrect {
+    background: rgba(231, 76, 60, 0.9);
+    color: white;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes float-up {
+    from {
+        transform: translateY(100vh) scale(0.9);
+        opacity: 0.8;
+    }
+    to {
+        transform: translateY(-120px) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(0);
+        opacity: 0;
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.game-over {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.game-over-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: gameOverPop 0.5s ease-out;
+}
+
+.game-over-content h2 {
+    color: #e74c3c;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    font-weight: 300;
+}
+
+.game-over-content p {
+    font-size: 1.3em;
+    margin: 15px 0;
+    color: #2c3e50;
+}
+
+.game-over-content button {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    border-radius: 25px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background 0.3s ease;
+    font-weight: 600;
+}
+
+.game-over-content button:hover {
+    background: #2980b9;
+}
+
+.instructions {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 12px 25px;
+    border-radius: 20px;
+    font-size: 1em;
+    color: #2c3e50;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+@keyframes gameOverPop {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Different bubble colors for variety */
+.bubble.color-1 { background: rgba(52, 152, 219, 0.9); color: white; }
+.bubble.color-2 { background: rgba(155, 89, 182, 0.9); color: white; }
+.bubble.color-3 { background: rgba(46, 204, 113, 0.9); color: white; }
+.bubble.color-4 { background: rgba(230, 126, 34, 0.9); color: white; }
+.bubble.color-5 { background: rgba(241, 196, 15, 0.9); color: #2c3e50; }
